@@ -1,0 +1,13 @@
+target/
+.git/
+.idea/
+*.iml
+.env
+.env.*
+!.env.example
+scripts/
+start.bat
+ЗАПУСК.md
+HELP.md
+queryex
+qc

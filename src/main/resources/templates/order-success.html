@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СибМобиль - Заказ принят</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="fleet-page">
+
+<header class="fleet-header">
+    <div class="logo">
+        <span class="logo-sib">Сиб</span><span class="logo-mobile">Мобиль</span>
+    </div>
+    <nav class="fleet-nav">
+        <a th:href="@{/home}" class="nav-link">Главная</a>
+        <a th:href="@{/fleet}" class="nav-link">Наш автопарк</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;margin-left:16px;">
+            <button type="submit" class="nav-link" style="background:none;border:none;cursor:pointer;font:inherit;color:inherit;">Выход</button>
+        </form>
+    </nav>
+</header>
+
+<main class="fleet-main">
+    <div class="auth-card" style="max-width: 520px; margin: 40px auto;">
+        <h2 style="text-align:center; margin-bottom: 16px;">Заказ принят</h2>
+        <p style="margin-bottom: 16px;" th:text="'Вы успешно забронировали автомобиль: ' + ${carName}"></p>
+        <p style="margin-bottom: 8px;">
+            Тариф: <strong th:text="${tariff}">TARIFF</strong>
+        </p>
+        <p style="margin-bottom: 8px;">
+            Предоплата: <strong><span th:text="${#numbers.formatInteger(price.prepayment, 0)}">0</span> ₽</strong>,
+            стоимость за км: <strong><span th:text="${#numbers.formatDecimal(price.perKm, 1, 'COMMA', 2, 'POINT')}">0</span> ₽/км</strong>.
+        </p>
+        <p th:if="${email != null}" style="margin-bottom: 8px;">
+            Подтверждение отправлено на вашу почту: <strong th:text="${email}">email@example.com</strong>.
+        </p>
+        <p th:if="${email == null}" style="margin-bottom: 8px;">
+            Подтверждение заказа не было отправлено на почту (email не найден).
+        </p>
+        <div style="text-align:center; margin-top: 16px;">
+            <a th:href="@{/home}" class="btn btn-primary" style="width:auto;">На главную</a>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>
+
+

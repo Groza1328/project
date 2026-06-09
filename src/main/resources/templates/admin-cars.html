@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СибМобиль - Автопарк</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="fleet-page admin-page">
+<header class="fleet-header">
+    <div class="logo"><span class="logo-sib">Сиб</span><span class="logo-mobile">Мобиль</span></div>
+    <nav class="fleet-nav">
+        <a th:href="@{/admin}" class="nav-link">Пользователи</a>
+        <a th:href="@{/admin/employees}" class="nav-link">Сотрудники</a>
+        <a th:href="@{/admin/cars}" class="nav-link active">Автопарк</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit" class="nav-link" style="background:none;border:none;cursor:pointer;font:inherit;color:inherit;">Выход</button>
+        </form>
+    </nav>
+</header>
+
+<main class="fleet-main">
+    <div class="admin-header">
+        <h1 class="admin-title">Автопарк</h1>
+    </div>
+
+    <p th:if="${param.created}" class="admin-flash success">Авто «<span th:text="${param.created[0]}">...</span>» добавлено.</p>
+    <p th:if="${param.updated}" class="admin-flash success">Авто «<span th:text="${param.updated[0]}">...</span>» обновлено.</p>
+    <p th:if="${param.deleted}" class="admin-flash success">Авто «<span th:text="${param.deleted[0]}">...</span>» удалено.</p>
+    <p th:if="${param.error}" class="admin-flash error">
+        <span th:if="${param.error[0] == 'exists'}">Такой госномер уже существует.</span>
+        <span th:if="${param.error[0] == 'invalid'}">Заполните обязательные поля.</span>
+        <span th:if="${param.error[0] == 'notfound'}">Автомобиль не найден.</span>
+    </p>
+
+    <div class="admin-table-wrap" style="margin-bottom:16px;">
+        <table class="admin-table">
+            <thead>
+            <tr><th colspan="7">Добавить автомобиль</th></tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td colspan="7">
+                    <form th:action="@{/admin/cars/create}" method="post" enctype="multipart/form-data" class="admin-actions">
+                        <input type="text" name="name" placeholder="Название" required>
+                        <select name="bodyType" title="Тип кузова" required>
+                            <option value="" selected disabled>Выберите кузов</option>
+                            <option th:each="b : ${bodyTypes}" th:value="${b}" th:text="${b}">Седан</option>
+                        </select>
+                        <input type="text" name="plateNumber" placeholder="Госномер" required>
+                        <input type="file" name="imageFile" accept=".jpg,.jpeg,.png,.webp" title="Выбрать фото">
+                        <input type="text" name="description" placeholder="Описание">
+                        <label style="display:flex;align-items:center;gap:6px;">
+                            <input type="checkbox" name="active" value="true" checked> Активен
+                        </label>
+                        <button type="submit" class="btn btn-unblock">Добавить</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+            <tr>
+                <th>Название</th>
+                <th>Кузов</th>
+                <th>Госномер</th>
+                <th>Фото</th>
+                <th>Описание</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${cars}">
+                <td><input type="text" name="name" title="Название авто" placeholder="Название" th:value="${c.name}" th:attr="form=${'carForm_' + c.id}" required></td>
+                <td>
+                    <select name="bodyType" title="Тип кузова" th:attr="form=${'carForm_' + c.id}" required>
+                        <option th:each="b : ${bodyTypes}" th:value="${b}" th:text="${b}" th:selected="${c.bodyType == b}">Седан</option>
+                    </select>
+                </td>
+                <td><input type="text" name="plateNumber" title="Госномер" placeholder="Госномер" th:value="${c.plateNumber}" th:attr="form=${'carForm_' + c.id}" required></td>
+                <td>
+                    <div class="small" th:text="${c.imagePath != null ? c.imagePath : '—'}">/images/Auto1.jpg</div>
+                    <input type="file" name="imageFile" accept=".jpg,.jpeg,.png,.webp" title="Выбрать фото" th:attr="form=${'carForm_' + c.id}">
+                </td>
+                <td><input type="text" name="description" title="Описание" placeholder="Описание" th:value="${c.description}" th:attr="form=${'carForm_' + c.id}"></td>
+                <td>
+                    <label style="display:flex;align-items:center;gap:6px;">
+                        <input type="checkbox" name="active" value="true" th:checked="${c.active}" th:attr="form=${'carForm_' + c.id}"> Активен
+                    </label>
+                </td>
+                <td>
+                    <div class="admin-actions">
+                        <form th:id="'carForm_' + ${c.id}" th:action="@{/admin/cars/update}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="carId" th:value="${c.id}">
+                            <button type="submit" class="btn btn-unblock">Сохранить</button>
+                        </form>
+                        <form th:action="@{/admin/cars/delete}" method="post" onsubmit="return confirm('Удалить авто?');">
+                            <input type="hidden" name="carId" th:value="${c.id}">
+                            <button type="submit" class="btn btn-delete">Удалить</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>
+

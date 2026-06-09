@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СибМобиль - Сотрудники</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="fleet-page admin-page">
+<header class="fleet-header">
+    <div class="logo"><span class="logo-sib">Сиб</span><span class="logo-mobile">Мобиль</span></div>
+    <nav class="fleet-nav">
+        <a th:href="@{/admin}" class="nav-link">Пользователи</a>
+        <a th:href="@{/admin/employees}" class="nav-link active">Сотрудники</a>
+        <a th:href="@{/admin/cars}" class="nav-link">Автопарк</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+            <button type="submit" class="nav-link" style="background:none;border:none;cursor:pointer;font:inherit;color:inherit;">Выход</button>
+        </form>
+    </nav>
+</header>
+
+<main class="fleet-main">
+    <div class="admin-header">
+        <h1 class="admin-title">Сотрудники</h1>
+    </div>
+
+    <p th:if="${param.created}" class="admin-flash success">Сотрудник «<span th:text="${param.created[0]}">...</span>» создан.</p>
+    <p th:if="${param.updated}" class="admin-flash success">Данные сотрудника «<span th:text="${param.updated[0]}">...</span>» обновлены.</p>
+    <p th:if="${param.deleted}" class="admin-flash success">Сотрудник «<span th:text="${param.deleted[0]}">...</span>» удалён.</p>
+    <p th:if="${param.error}" class="admin-flash error">
+        <span th:if="${param.error[0] == 'exists'}">Логин или email уже занят.</span>
+        <span th:if="${param.error[0] == 'invalid'}">Проверьте заполнение полей (пароль минимум 6 символов).</span>
+        <span th:if="${param.error[0] == 'badpass'}">Новый пароль должен быть минимум 6 символов.</span>
+        <span th:if="${param.error[0] == 'notfound'}">Сотрудник не найден.</span>
+    </p>
+
+    <div class="admin-table-wrap" style="margin-bottom:16px;">
+        <table class="admin-table">
+            <thead>
+            <tr>
+                <th colspan="9">Добавить сотрудника</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td colspan="9">
+                    <form th:action="@{/admin/employees/create}" method="post" class="admin-actions">
+                        <input type="text" name="username" placeholder="Логин" required>
+                        <input type="password" name="password" placeholder="Пароль (мин. 6)" required>
+                        <input type="text" name="fullName" placeholder="ФИО" required>
+                        <input type="text" name="position" placeholder="Должность" required>
+                        <input type="email" name="email" placeholder="Email" required>
+                        <input type="text" name="phone" placeholder="Телефон">
+                        <select name="role" title="Роль сотрудника">
+                            <option th:each="r : ${employeeRoles}" th:value="${r}" th:text="${r}">EMPLOYEE</option>
+                        </select>
+                        <label style="display:flex;align-items:center;gap:6px;">
+                            <input type="checkbox" name="active" value="true" checked>
+                            Активен
+                        </label>
+                        <button type="submit" class="btn btn-unblock">Создать</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+            <tr>
+                <th>Логин</th>
+                <th>ФИО</th>
+                <th>Должность</th>
+                <th>Email</th>
+                <th>Телефон</th>
+                <th>Принят</th>
+                <th>Последний вход</th>
+                <th>Статус</th>
+                <th>Роль</th>
+                <th>Пароль</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="e : ${employees}">
+                <td><input type="text" name="username" title="Логин" placeholder="Логин" th:value="${e.username}" th:attr="form=${'updateForm_' + e.id}" required></td>
+                <td><input type="text" name="fullName" title="ФИО" placeholder="ФИО" th:value="${e.fullName}" th:attr="form=${'updateForm_' + e.id}" required></td>
+                <td><input type="text" name="position" title="Должность" placeholder="Должность" th:value="${e.position}" th:attr="form=${'updateForm_' + e.id}" required></td>
+                <td><input type="email" name="email" title="Email" placeholder="Email" th:value="${e.email}" th:attr="form=${'updateForm_' + e.id}" required></td>
+                <td><input type="text" name="phone" title="Телефон" placeholder="Телефон" th:value="${e.phone}" th:attr="form=${'updateForm_' + e.id}"></td>
+                <td th:text="${e.hiredAt != null ? #temporals.format(e.hiredAt, 'dd.MM.yyyy') : '—'}">дата</td>
+                <td th:text="${e.lastLoginAt != null ? #temporals.format(e.lastLoginAt, 'dd.MM.yyyy HH:mm') : '—'}">—</td>
+                <td>
+                    <label style="display:flex;align-items:center;gap:6px;">
+                        <input type="checkbox" name="active" value="true" th:checked="${e.active}" th:attr="form=${'updateForm_' + e.id}">
+                        <span th:text="${e.active} ? 'Активен' : 'Неактивен'">Активен</span>
+                    </label>
+                </td>
+                <td>
+                    <select name="role" title="Роль сотрудника" th:attr="form=${'updateForm_' + e.id}">
+                        <option th:each="r : ${employeeRoles}" th:value="${r}" th:text="${r}" th:selected="${e.role == r}">EMPLOYEE</option>
+                    </select>
+                </td>
+                <td><input type="password" name="password" placeholder="Новый пароль" th:attr="form=${'updateForm_' + e.id}"></td>
+                <td>
+                    <div class="admin-actions">
+                        <form th:id="'updateForm_' + ${e.id}" th:action="@{/admin/employees/update}" method="post">
+                            <input type="hidden" name="employeeId" th:value="${e.id}">
+                            <button type="submit" class="btn btn-unblock">Сохранить</button>
+                        </form>
+                        <form th:action="@{/admin/employees/delete}" method="post"
+                              onsubmit="return confirm('Удалить сотрудника?');">
+                            <input type="hidden" name="employeeId" th:value="${e.id}">
+                            <button type="submit" class="btn btn-delete">Удалить</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>
+

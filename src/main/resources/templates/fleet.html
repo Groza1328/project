@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СибМобиль - Наш автопарк</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="fleet-page">
+
+<header class="fleet-header">
+    <div class="logo">
+        <span class="logo-sib">Сиб</span><span class="logo-mobile">Мобиль</span>
+    </div>
+    <nav class="fleet-nav">
+        <a th:href="@{/home}" class="nav-link">Главная</a>
+        <a th:href="@{/fleet}" class="nav-link active">Заказать</a>
+        <a th:href="@{/tariffs}" class="nav-link">Тарифы</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;margin-left:16px;">
+            <button type="submit" class="nav-link" style="background:none;border:none;cursor:pointer;font:inherit;color:inherit;">Выход</button>
+        </form>
+    </nav>
+</header>
+
+<main class="fleet-main">
+
+    <div class="car-slider-wrapper" th:if="${#lists.isEmpty(cars) == false}">
+        <div class="car-slider" id="carSlider">
+            <section class="car-card" th:each="car,iterStat : ${cars}">
+                <div class="car-image">
+                    <img th:src="@{${car.imagePath}}" th:alt="${car.name}">
+                </div>
+                <div class="car-info">
+                    <h1 class="car-title" th:text="${car.name}">Название авто</h1>
+                    <p class="car-subtitle" th:text="${car.description}">Описание авто</p>
+
+                    <div class="car-pricing">
+                        <div>
+                            <p class="price-label">Предоплата</p>
+                            <p class="price-value" th:text="${#numbers.formatInteger(car.pre, 0) + ' ₽'}">0 ₽</p>
+                        </div>
+                        <div>
+                            <p class="price-label">Стоимость за км</p>
+                            <p class="price-value" th:text="${car.km} + ' ₽/км'">0 ₽/км</p>
+                        </div>
+                    </div>
+
+                    <div class="order-actions">
+                        <a th:href="@{/order(car=${car.type.name()})}" class="btn btn-primary">
+                            Выбрать этот авто
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <button class="slider-arrow left" id="prevCar">&#10094;</button>
+        <button class="slider-arrow right" id="nextCar">&#10095;</button>
+
+        <div class="slider-dots" id="sliderDots">
+            <button class="dot" th:each="car,iterStat : ${cars}"
+                    th:classappend="${iterStat.index == 0} ? ' active'"
+                    th:attr="data-index=${iterStat.index}"></button>
+        </div>
+    </div>
+
+</main>
+
+<script>
+    const slider = document.getElementById('carSlider');
+    if (slider) {
+        const slides = Array.from(slider.querySelectorAll('.car-card'));
+        const prevBtn = document.getElementById('prevCar');
+        const nextBtn = document.getElementById('nextCar');
+        const dots = Array.from(document.querySelectorAll('#sliderDots .dot'));
+
+        let currentIndex = 0;
+
+        function updateSlider() {
+            slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+            dots.forEach((dot, index) => {
+                if (index === currentIndex) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        if (prevBtn && nextBtn) {
+            prevBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+                updateSlider();
+            });
+
+            nextBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % slides.length;
+                updateSlider();
+            });
+        }
+
+        dots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const index = parseInt(dot.getAttribute('data-index'), 10);
+                if (!isNaN(index)) {
+                    currentIndex = index;
+                    updateSlider();
+                }
+            });
+        });
+    }
+</script>
+
+</body>
+</html>

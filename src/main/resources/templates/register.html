@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СибМобиль - Регистрация</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="logo">
+                <span class="logo-sib">Сиб</span><span class="logo-mobile">Мобиль</span>
+            </div>
+            <h2>Регистрация</h2>
+            
+            <div th:if="${registerError}" class="alert alert-error" th:text="${registerError}"></div>
+            
+            <form th:action="@{/register}" th:object="${registerForm}" method="post" autocomplete="off">
+                <input type="text" name="fake-username" autocomplete="username" tabindex="-1" aria-hidden="true"
+                       style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+                <input type="password" name="fake-password" autocomplete="new-password" tabindex="-1" aria-hidden="true"
+                       style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+                <div class="form-group">
+                    <label for="username">Логин</label>
+                    <input type="text" id="username" name="username" required autocomplete="off">
+                    <span class="username-status"></span>
+                    <div th:if="${#fields.hasErrors('username')}" class="field-error" th:errors="*{username}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required autocomplete="off">
+                    <div th:if="${#fields.hasErrors('email')}" class="field-error" th:errors="*{email}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" required autocomplete="new-password">
+                    <div th:if="${#fields.hasErrors('password')}" class="field-error" th:errors="*{password}"></div>
+                </div>
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="agreement" name="agreement" value="true" autocomplete="off">
+                        <span>Я согласен на <a href="/privacy" target="_blank">обработку персональных данных</a></span>
+                    </label>
+                    <div th:if="${#fields.hasErrors('agreement')}" class="field-error" th:errors="*{agreement}"></div>
+                </div>
+                <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Уже есть аккаунт? <a th:href="@{/login}">Войти</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const usernameInput = document.getElementById('username');
+        const statusSpan = document.querySelector('.username-status');
+        let timeout;
+        
+        usernameInput.addEventListener('input', function() {
+            clearTimeout(timeout);
+            const username = this.value.trim();
+            
+            if (username.length < 3) {
+                statusSpan.textContent = '';
+                return;
+            }
+            
+            timeout = setTimeout(() => {
+                fetch('/api/check-username?username=' + encodeURIComponent(username))
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.taken) {
+                            statusSpan.textContent = '✗ Логин занят';
+                            statusSpan.className = 'username-status taken';
+                        } else {
+                            statusSpan.textContent = '✓ Логин свободен';
+                            statusSpan.className = 'username-status available';
+                        }
+                    });
+            }, 500);
+        });
+    </script>
+</body>
+</html>

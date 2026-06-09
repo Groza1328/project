@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СибМобиль - Тарифы</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="fleet-page">
+
+<header class="fleet-header">
+    <div class="logo">
+        <span class="logo-sib">Сиб</span><span class="logo-mobile">Мобиль</span>
+    </div>
+    <nav class="fleet-nav">
+        <a th:href="@{/home}" class="nav-link">Главная</a>
+        <a th:href="@{/fleet}" class="nav-link">Заказать</a>
+        <a href="#" class="nav-link active">Тарифы</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;margin-left:16px;">
+            <button type="submit" class="nav-link" style="background:none;border:none;cursor:pointer;font:inherit;color:inherit;">Выход</button>
+        </form>
+    </nav>
+</header>
+
+<main class="fleet-main tariffs-main">
+    <h1 class="tariffs-title">Подписки СибМобиль</h1>
+    <p class="tariffs-subtitle">Выберите подходящий уровень сервиса. Стандарт действует автоматически, если другая подписка не активна.</p>
+
+    <div class="tariff-grid">
+        <!-- Стандарт -->
+        <section class="tariff-card" th:classappend="${tariff.name() == 'STANDARD'} ? ' active'">
+            <div class="tariff-header">
+                <h2>Стандарт</h2>
+                <span class="tariff-price">0 ₽/мес</span>
+            </div>
+            <p class="tariff-tagline">Базовый уровень для всех пользователей.</p>
+            <ul class="tariff-benefits">
+                <li>Без ежемесячной оплаты</li>
+                <li>Текущие базовые цены на предоплату и км</li>
+            </ul>
+            <div class="tariff-footer">
+                <span th:if="${tariff.name() == 'STANDARD'}" class="tariff-active-label">Активен</span>
+                <span th:if="${tariff.name() != 'STANDARD'}" class="tariff-note">Активируется автоматически при отключении других подписок</span>
+            </div>
+        </section>
+
+        <!-- Эконом -->
+        <section class="tariff-card" th:classappend="${tariff.name() == 'ECONOMY'} ? ' active'">
+            <div class="tariff-header">
+                <h2>Эконом</h2>
+                <span class="tariff-price">399 ₽/мес</span>
+            </div>
+            <p class="tariff-tagline">Для тех, кто часто вносит предоплату.</p>
+            <ul class="tariff-benefits">
+                <li>Скидка 25% на предоплату</li>
+                <li>Стоимость за километр без изменений</li>
+                <li>Парковка только на парковках компании</li>
+            </ul>
+            <div class="tariff-footer">
+                <form th:if="${tariff.name() != 'ECONOMY'}" th:action="@{/tariffs/select}" method="post">
+                    <input type="hidden" name="type" value="ECONOMY">
+                    <button type="submit" class="btn btn-primary">Подключить</button>
+                </form>
+                <span th:if="${tariff.name() == 'ECONOMY'}" class="tariff-active-label">Активен</span>
+            </div>
+        </section>
+
+        <!-- Премиум -->
+        <section class="tariff-card" th:classappend="${tariff.name() == 'PREMIUM'} ? ' active'">
+            <div class="tariff-header">
+                <h2>Премиум</h2>
+                <span class="tariff-price">799 ₽/мес</span>
+            </div>
+            <p class="tariff-tagline">Максимальная выгода на поездках.</p>
+            <ul class="tariff-benefits">
+                <li>Скидка 35% на предоплату</li>
+                <li>Скидка 35% на стоимость за километр</li>
+                <li>Парковка только на парковках компании</li>
+            </ul>
+            <div class="tariff-footer">
+                <form th:if="${tariff.name() != 'PREMIUM'}" th:action="@{/tariffs/select}" method="post">
+                    <input type="hidden" name="type" value="PREMIUM">
+                    <button type="submit" class="btn btn-primary">Подключить</button>
+                </form>
+                <span th:if="${tariff.name() == 'PREMIUM'}" class="tariff-active-label">Активен</span>
+            </div>
+        </section>
+
+        <!-- Люкс -->
+        <section class="tariff-card" th:classappend="${tariff.name() == 'LUX'} ? ' active'">
+            <div class="tariff-header">
+                <h2>Люкс</h2>
+                <span class="tariff-price">1 199 ₽/мес</span>
+            </div>
+            <p class="tariff-tagline">Максимальная свобода и комфорт.</p>
+            <ul class="tariff-benefits">
+                <li>Скидка 50% на предоплату</li>
+                <li>Скидка 50% на стоимость за километр</li>
+                <li>Можно оставлять авто в любом месте в пределах зоны</li>
+            </ul>
+            <div class="tariff-footer">
+                <form th:if="${tariff.name() != 'LUX'}" th:action="@{/tariffs/select}" method="post">
+                    <input type="hidden" name="type" value="LUX">
+                    <button type="submit" class="btn btn-primary">Подключить</button>
+                </form>
+                <span th:if="${tariff.name() == 'LUX'}" class="tariff-active-label">Активен</span>
+            </div>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>
+
+

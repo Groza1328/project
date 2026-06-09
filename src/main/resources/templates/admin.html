@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СибМобиль - Панель администратора</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body { font-size: 14px; }
+        .admin-page { padding: 24px 24px; max-width: 1200px; margin: 0 auto; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+        .admin-title { color: #fff; font-size: 22px; }
+        .admin-back { color: var(--accent-cyan); text-decoration: none; }
+        .admin-table-wrap { overflow-x: auto; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+        .admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .admin-table th, .admin-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+        .admin-table th { background: #f3f4f6; font-weight: 600; color: var(--text-dark); font-size: 13px; white-space: nowrap; }
+        .admin-table tr:hover { background: #f9fafb; }
+        .admin-table .small { font-size: 12px; color: var(--text-light); line-height: 1.4; }
+        .badge-blocked { background: #ef4444; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 11px; display: inline-block; }
+        .badge-restricted { background: #f59e0b; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 11px; display: inline-block; white-space: nowrap; }
+        .admin-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .admin-actions form { display: inline; }
+        .admin-actions .btn { padding: 5px 10px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+        .btn-block { background: #dc2626; color: #fff; }
+        .btn-restrict { background: #d97706; color: #fff; }
+        .btn-unblock { background: #16a34a; color: #fff; }
+        .btn-tariff { background: var(--primary-blue); color: #fff; }
+        .btn-delete { background: #991b1b; color: #fff; }
+        .btn-delete:hover { background: #b91c1c; }
+        .admin-flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+        .admin-flash.success { background: #d1fae5; color: #065f46; }
+        .admin-flash.error { background: #fee2e2; color: #991b1b; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .modal.show { display: flex; }
+        .modal-content { background: var(--card-bg); border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; }
+        .modal-content h3 { margin-bottom: 16px; font-size: 18px; }
+        .modal-content .form-group { margin-bottom: 16px; }
+        .modal-content label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; }
+        .modal-content input, .modal-content select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .tariff-select { max-width: 120px; padding: 4px 8px; font-size: 12px; border: 1px solid #d1d5db; border-radius: 6px; }
+        .col-narrow { width: 8%; }
+        .col-email { width: 12%; }
+        .col-date { width: 9%; }
+        .col-tariff { width: 8%; }
+        .col-period { width: 9%; }
+        .col-car { width: 15%; max-width: 180px; }
+        .col-complaints { width: 6%; text-align: center; }
+        .col-status { width: 10%; }
+        .col-actions { width: 18%; }
+    </style>
+</head>
+<body class="fleet-page admin-page">
+<header class="fleet-header">
+    <div class="logo"><span class="logo-sib">Сиб</span><span class="logo-mobile">Мобиль</span></div>
+    <nav class="fleet-nav">
+        <a th:href="@{/admin}" class="nav-link active">Пользователи</a>
+        <a th:href="@{/admin/employees}" class="nav-link">Сотрудники</a>
+        <a th:href="@{/admin/cars}" class="nav-link">Автопарк</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;"><button type="submit" class="nav-link" style="background:none;border:none;cursor:pointer;font:inherit;color:inherit;">Выход</button></form>
+    </nav>
+</header>
+
+<main class="fleet-main">
+    <div class="admin-header">
+        <h1 class="admin-title">Пользователи</h1>
+    </div>
+
+    <p th:if="${param.blocked}" class="admin-flash success">Пользователь «<span th:text="${param.blocked[0]}">...</span>» заблокирован. Уведомление отправлено на почту.</p>
+    <p th:if="${param.restricted}" class="admin-flash success">Пользователь «<span th:text="${param.restricted[0]}">...</span>» временно ограничен. Уведомление отправлено на почту.</p>
+    <p th:if="${param.unblocked}" class="admin-flash success">Пользователь «<span th:text="${param.unblocked[0]}">...</span>» разблокирован.</p>
+    <p th:if="${param.tariff}" class="admin-flash success">Подписка пользователя «<span th:text="${param.tariff[0]}">...</span>» изменена.</p>
+    <p th:if="${param.deleted}" class="admin-flash success">Пользователь «<span th:text="${param.deleted[0]}">...</span>» удалён.</p>
+    <p th:if="${param.error}" class="admin-flash error">Пользователь не найден.</p>
+    <p th:if="${param.admin}" class="admin-flash error">Нельзя удалить администратора.</p>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th class="col-narrow">Имя (логин)</th>
+                    <th class="col-email">Почта</th>
+                    <th class="col-date">Дата регистрации</th>
+                    <th class="col-date">Последний вход</th>
+                    <th class="col-tariff">Подписка</th>
+                    <th class="col-period">Период</th>
+                    <th class="col-car">Текущий авто</th>
+                    <th class="col-complaints">Жалобы</th>
+                    <th class="col-status">Статус</th>
+                    <th class="col-actions">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="u : ${users}">
+                    <td>
+                        <span th:text="${u.fullName != null && !#strings.isEmpty(u.fullName)} ? u.fullName : '—'">—</span><br>
+                        <span class="small" th:text="${u.username}">login</span>
+                    </td>
+                    <td th:text="${u.email}" class="small" style="word-break: break-word;">—</td>
+                    <td th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'dd.MM.yyyy') : '—'}" class="small">—</td>
+                    <td th:text="${u.lastLoginAt != null ? #temporals.format(u.lastLoginAt, 'dd.MM.yyyy HH:mm') : '—'}" class="small">—</td>
+                    <td th:text="${u.tariffDisplayName != null ? u.tariffDisplayName : 'STANDARD'}">—</td>
+                    <td th:text="${u.tariff != null && u.tariff.name() == 'STANDARD' ? '—' : (u.tariffSince != null ? #temporals.format(u.tariffSince, 'dd.MM.yyyy') : '—')}" class="small">—</td>
+                    <td class="small">
+                        <span th:if="${u.currentCarName != null}">
+                            <strong th:text="${u.currentCarName}">Машина</strong><br>
+                            <span th:text="${#temporals.format(u.currentOrderStart, 'dd.MM HH:mm')}">—</span> - 
+                            <span th:text="${#temporals.format(u.currentOrderEnd, 'dd.MM HH:mm')}">—</span>
+                        </span>
+                        <span th:if="${u.currentCarName == null}">—</span>
+                    </td>
+                    <td th:text="${u.complaintsFinesCount}" style="text-align:center;">0</td>
+                    <td>
+                        <span th:if="${u.blocked}" class="badge-blocked">Заблокирован</span>
+                        <span th:elseif="${u.restrictedUntil != null}" class="badge-restricted" th:title="${'До ' + #temporals.format(u.restrictedUntil, 'dd.MM.yyyy')}">Огранич.</span>
+                        <span th:unless="${u.blocked || u.restrictedUntil != null}">—</span>
+                    </td>
+                    <td>
+                        <div class="admin-actions">
+                            <th:block th:if="${!u.blocked}">
+                                <button type="button" class="btn btn-block" th:data-user-id="${u.id}" th:data-username="${u.username}" data-action="block">Заблокировать</button>
+                                <button type="button" class="btn btn-restrict" th:data-user-id="${u.id}" th:data-username="${u.username}" data-action="restrict">Ограничить</button>
+                            </th:block>
+                            <th:block th:if="${u.blocked || u.restrictedUntil != null}">
+                                <form th:action="@{/admin/unblock}" method="post" style="display:inline;">
+                                    <input type="hidden" name="userId" th:value="${u.id}">
+                                    <button type="submit" class="btn btn-unblock">Разблокировать</button>
+                                </form>
+                            </th:block>
+                            <form th:action="@{/admin/tariff}" method="post" style="display:inline;">
+                                <input type="hidden" name="userId" th:value="${u.id}">
+                                <select name="tariff" class="tariff-select" onchange="this.form.submit()">
+                                    <option th:each="t : ${tariffTypes}" th:value="${t.name()}" th:text="${t.name()}" th:selected="${(u.tariffDisplayName != null && u.tariffDisplayName == t.name()) || (u.tariff != null && u.tariff.name() == t.name())}">STANDARD</option>
+                                </select>
+                            </form>
+                            <form th:action="@{/admin/delete}" method="post" style="display:inline;" class="form-delete" th:data-username="${u.username}" onsubmit="return confirm('Удалить пользователя «' + this.dataset.username + '»? Это действие нельзя отменить.');">
+                                <input type="hidden" name="userId" th:value="${u.id}">
+                                <button type="submit" class="btn btn-delete">Удалить</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<!-- Модальное окно: блокировка -->
+<div id="modalBlock" class="modal">
+    <div class="modal-content">
+        <h3>Заблокировать пользователя <span id="blockUsername"></span></h3>
+        <form id="formBlock" method="post" th:action="@{/admin/block}">
+            <input type="hidden" name="userId" id="blockUserId">
+            <div class="form-group">
+                <label for="blockReason">Причина (отправится на почту)</label>
+                <input type="text" name="reason" id="blockReason" placeholder="Причина блокировки">
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-block">Заблокировать</button>
+                <button type="button" class="btn" onclick="closeModal('modalBlock')" style="background:#6b7280;color:#fff;">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модальное окно: ограничение -->
+<div id="modalRestrict" class="modal">
+    <div class="modal-content">
+        <h3>Временно ограничить пользователя <span id="restrictUsername"></span></h3>
+        <form id="formRestrict" method="post" th:action="@{/admin/restrict}">
+            <input type="hidden" name="userId" id="restrictUserId">
+            <div class="form-group">
+                <label for="restrictReason">Причина (отправится на почту)</label>
+                <input type="text" name="reason" id="restrictReason" placeholder="Причина ограничения">
+            </div>
+            <div class="form-group">
+                <label for="restrictUntil">Ограничить до (дата и время)</label>
+                <input type="datetime-local" name="restrictedUntil" id="restrictUntil" required>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-restrict">Ограничить</button>
+                <button type="button" class="btn" onclick="closeModal('modalRestrict')" style="background:#6b7280;color:#fff;">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('[data-action="block"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('blockUserId').value = btn.dataset.userId;
+            document.getElementById('blockUsername').textContent = btn.dataset.username;
+            document.getElementById('blockReason').value = '';
+            document.getElementById('modalBlock').classList.add('show');
+        });
+    });
+    document.querySelectorAll('[data-action="restrict"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('restrictUserId').value = btn.dataset.userId;
+            document.getElementById('restrictUsername').textContent = btn.dataset.username;
+            document.getElementById('restrictReason').value = '';
+            const until = new Date();
+            until.setDate(until.getDate() + 7);
+            document.getElementById('restrictUntil').value = until.toISOString().slice(0, 16);
+            document.getElementById('modalRestrict').classList.add('show');
+        });
+    });
+    function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+    document.getElementById('modalBlock').addEventListener('click', e => { if (e.target.id === 'modalBlock') closeModal('modalBlock'); });
+    document.getElementById('modalRestrict').addEventListener('click', e => { if (e.target.id === 'modalRestrict') closeModal('modalRestrict'); });
+</script>
+</body>
+</html>

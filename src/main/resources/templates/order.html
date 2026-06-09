@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СибМобиль - Заказ</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="fleet-page">
+
+<header class="fleet-header">
+    <div class="logo">
+        <span class="logo-sib">Сиб</span><span class="logo-mobile">Мобиль</span>
+    </div>
+    <nav class="fleet-nav">
+        <a th:href="@{/home}" class="nav-link">Главная</a>
+        <a th:href="@{/fleet}" class="nav-link">Наш автопарк</a>
+        <a href="#" class="nav-link active">Оформление заказа</a>
+        <form th:action="@{/logout}" method="post" style="display:inline;margin-left:16px;">
+            <button type="submit" class="nav-link" style="background:none;border:none;cursor:pointer;font:inherit;color:inherit;">Выход</button>
+        </form>
+    </nav>
+</header>
+
+<main class="fleet-main">
+    <h1 class="tariffs-title" th:text="${carName}">Оформление заказа</h1>
+    <p class="tariffs-subtitle">
+        Итоговая стоимость с учётом вашего тарифа (<span th:text="${tariff}">TARIFF</span>).
+    </p>
+
+    <section class="car-card order-card">
+        <div class="car-info" style="width:100%">
+            <div class="car-pricing">
+                <div>
+                    <p class="price-label">Предоплата</p>
+                    <p class="price-value">
+                        <span th:text="${#numbers.formatInteger(price.prepayment, 0)}">0</span> ₽
+                        <span class="price-old" th:if="${price.basePrepayment != price.prepayment}">
+                            <span th:text="${#numbers.formatInteger(price.basePrepayment, 0)}">0</span> ₽
+                        </span>
+                    </p>
+                </div>
+                <div>
+                    <p class="price-label">Стоимость за км</p>
+                    <p class="price-value">
+                        <span th:text="${#numbers.formatDecimal(price.perKm, 1, 'COMMA', 2, 'POINT')}">0</span> ₽/км
+                        <span class="price-old" th:if="${price.basePerKm != price.perKm}">
+                            <span th:text="${#numbers.formatDecimal(price.basePerKm, 1, 'COMMA', 2, 'POINT')}">0</span> ₽/км
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <form th:action="@{/order}" th:object="${orderForm}" method="post" class="order-form">
+                <input type="hidden" th:field="*{carType}">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">Имя</label>
+                        <input type="text" id="firstName" th:field="*{firstName}" required>
+                        <div th:if="${#fields.hasErrors('firstName')}" class="field-error" th:errors="*{firstName}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Фамилия</label>
+                        <input type="text" id="lastName" th:field="*{lastName}" required>
+                        <div th:if="${#fields.hasErrors('lastName')}" class="field-error" th:errors="*{lastName}"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Номер телефона</label>
+                    <input type="tel" id="phone" th:field="*{phone}" placeholder="+7 ..." required>
+                    <div th:if="${#fields.hasErrors('phone')}" class="field-error" th:errors="*{phone}"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="city">Город</label>
+                        <select id="city" th:field="*{city}" required>
+                            <option value="Омск">Омск</option>
+                            <option value="Новосибирск">Новосибирск</option>
+                        </select>
+                        <div th:if="${#fields.hasErrors('city')}" class="field-error" th:errors="*{city}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Адрес выдачи</label>
+                        <select id="address" th:field="*{address}" required>
+                            <!-- варианты задаём через JS -->
+                        </select>
+                        <div th:if="${#fields.hasErrors('address')}" class="field-error" th:errors="*{address}"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="startDateTime">Начало проката</label>
+                        <input type="datetime-local" id="startDateTime" th:field="*{startDateTime}" required>
+                        <div th:if="${#fields.hasErrors('startDateTime')}" class="field-error" th:errors="*{startDateTime}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="endDateTime">Окончание проката</label>
+                        <input type="datetime-local" id="endDateTime" th:field="*{endDateTime}" required>
+                        <div th:if="${#fields.hasErrors('endDateTime')}" class="field-error" th:errors="*{endDateTime}"></div>
+                    </div>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" th:field="*{sendReceipt}">
+                        <span>Отправить чек на почту?</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Оформить заказ</button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<script>
+    const citySelect = document.getElementById('city');
+    const addressSelect = document.getElementById('address');
+
+    const addressMap = {
+        "Омск": [
+            "ул. Ленина, д. 75",
+            "Б-р. Архитекторов, д. 179",
+            "ул. Революции, д. 37/2"
+        ],
+        "Новосибирск": [
+            "ул. Центральная, здание 82",
+            "Пр-кт Гоголя, д. 76",
+            "ул. Набережная, д. 62/1"
+        ]
+    };
+
+    function fillAddresses() {
+        const city = citySelect.value || "Омск";
+        const list = addressMap[city] || [];
+        addressSelect.innerHTML = "";
+        list.forEach(addr => {
+            const opt = document.createElement("option");
+            opt.value = addr;
+            opt.textContent = addr;
+            addressSelect.appendChild(opt);
+        });
+    }
+
+    citySelect.addEventListener("change", fillAddresses);
+    fillAddresses();
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            const lon = pos.coords.longitude;
+            let city = "Омск";
+            if (lon > 78) { // грубое разделение: восточнее - Новосибирск
+                city = "Новосибирск";
+            }
+            citySelect.value = city;
+            fillAddresses();
+        });
+    }
+</script>
+
+</body>
+</html>
+
+

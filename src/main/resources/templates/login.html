@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>СибМобиль - Вход</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="logo">
+                <span class="logo-sib">Сиб</span><span class="logo-mobile">Мобиль</span>
+            </div>
+            <h2>Вход в систему</h2>
+            
+            <div th:if="${param.error}" class="alert alert-error">
+                Неверный логин или пароль
+            </div>
+            <div th:if="${param.verified}" class="alert alert-success">
+                Email подтверждён! Теперь вы можете войти
+            </div>
+            <div th:if="${param.resetSuccess}" class="alert alert-success">
+                Пароль успешно изменён. Войдите с новым паролем.
+            </div>
+            
+            <form th:action="@{/login}" method="post" autocomplete="off">
+                <div class="form-group">
+                    <label for="username">Логин</label>
+                    <input type="text" id="username" name="username" required autofocus autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" required autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-primary">Войти</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p><a th:href="@{/forgot-password}">Не помню пароль</a></p>
+                <p>Нет аккаунта? <a th:href="@{/register}">Зарегистрироваться</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

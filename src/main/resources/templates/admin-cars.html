@@ -36,11 +36,11 @@
     <div class="admin-table-wrap" style="margin-bottom:16px;">
         <table class="admin-table">
             <thead>
-            <tr><th colspan="7">Добавить автомобиль</th></tr>
+            <tr><th colspan="8">Добавить автомобиль</th></tr>
             </thead>
             <tbody>
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <form th:action="@{/admin/cars/create}" method="post" enctype="multipart/form-data" class="admin-actions">
                         <input type="text" name="name" placeholder="Название" required>
                         <select name="bodyType" title="Тип кузова" required>
@@ -48,6 +48,10 @@
                             <option th:each="b : ${bodyTypes}" th:value="${b}" th:text="${b}">Седан</option>
                         </select>
                         <input type="text" name="plateNumber" placeholder="Госномер" required>
+                        <select name="city" title="Город" required>
+                            <option value="Омск">Омск</option>
+                            <option value="Новосибирск">Новосибирск</option>
+                        </select>
                         <input type="file" name="imageFile" accept=".jpg,.jpeg,.png,.webp" title="Выбрать фото">
                         <input type="text" name="description" placeholder="Описание">
                         <label style="display:flex;align-items:center;gap:6px;">
@@ -68,6 +72,7 @@
                 <th>Название</th>
                 <th>Кузов</th>
                 <th>Госномер</th>
+                <th>Город</th>
                 <th>Фото</th>
                 <th>Описание</th>
                 <th>Статус</th>
@@ -83,6 +88,7 @@
                     </select>
                 </td>
                 <td><input type="text" name="plateNumber" title="Госномер" placeholder="Госномер" th:value="${c.plateNumber}" th:attr="form=${'carForm_' + c.id}" required></td>
+                <td><input type="text" name="city" title="Город" placeholder="Город" th:value="${c.city}" th:attr="form=${'carForm_' + c.id}" required></td>
                 <td>
                     <div class="small" th:text="${c.imagePath != null ? c.imagePath : '—'}">/images/Auto1.jpg</div>
                     <input type="file" name="imageFile" accept=".jpg,.jpeg,.png,.webp" title="Выбрать фото" th:attr="form=${'carForm_' + c.id}">

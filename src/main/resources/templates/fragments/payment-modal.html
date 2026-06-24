@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<body>
+<div th:fragment="payment-modal" id="paymentModal" class="payment-modal" aria-hidden="true" role="dialog" aria-labelledby="paymentModalTitle">
+    <div class="payment-modal-backdrop" id="paymentModalBackdrop"></div>
+    <div class="payment-modal-dialog">
+        <h2 class="payment-modal-title" id="paymentModalTitle">Оплата</h2>
+        <p class="payment-modal-text">На данном этапе возможности оплачивать подписки или поездки нет</p>
+        <div class="payment-modal-actions">
+            <button type="button" class="btn btn-primary" id="paymentConfirmBtn">Подтвердить</button>
+            <button type="button" class="btn btn-secondary" id="paymentCancelBtn">Отмена</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

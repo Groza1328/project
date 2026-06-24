@@ -30,9 +30,13 @@ public class MailConfig {
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.starttls.required", "true");
         props.put("mail.smtp.ssl.trust", host);
-        props.put("mail.smtp.connectiontimeout", "15000");
-        props.put("mail.smtp.timeout", "15000");
-        props.put("mail.smtp.writetimeout", "15000");
+        props.put("mail.smtp.connectiontimeout", "8000");
+        props.put("mail.smtp.timeout", "8000");
+        props.put("mail.smtp.writetimeout", "8000");
+        props.put("mail.smtp.connectionpool", "true");
+        props.put("mail.smtp.connectionpoolsize", "5");
+        props.put("mail.smtp.connectionpooltimeout", "300000");
+        props.put("mail.smtp.quitwait", "false");
         return sender;
     }
 }

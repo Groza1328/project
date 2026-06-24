@@ -66,7 +66,8 @@ public class UserService {
         String code = generateVerificationCode();
         user.setVerificationCode(code);
         userRepository.save(user);
-        return emailService.sendVerificationCode(mail, code);
+        emailService.sendVerificationCodeAsync(mail, code);
+        return true;
     }
 
     public boolean resumePendingRegistration(String username, String email, String password) {
@@ -78,7 +79,8 @@ public class UserService {
                 String code = generateVerificationCode();
                 user.setVerificationCode(code);
                 userRepository.save(user);
-                return emailService.sendVerificationCode(user.getEmail(), code);
+                emailService.sendVerificationCodeAsync(user.getEmail(), code);
+                return true;
             })
             .orElse(false);
     }
@@ -103,7 +105,8 @@ public class UserService {
                 String code = generateVerificationCode();
                 user.setVerificationCode(code);
                 userRepository.save(user);
-                return emailService.sendVerificationCode(user.getEmail(), code);
+                emailService.sendVerificationCodeAsync(user.getEmail(), code);
+                return true;
             })
             .orElse(false);
     }
@@ -117,7 +120,8 @@ public class UserService {
         String code = generateVerificationCode();
         user.setResetCode(code);
         userRepository.save(user);
-        return emailService.sendPasswordResetCode(user.getEmail(), code);
+        emailService.sendPasswordResetCodeAsync(user.getEmail(), code);
+        return true;
     }
 
     public boolean resendPasswordResetCode(String email) {

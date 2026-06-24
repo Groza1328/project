@@ -1,0 +1,10 @@
+# Скопируйте в application-local.properties и укажите свои данные для локального запуска
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=sibmobile
+DB_USER=postgres
+DB_PASSWORD=ваш_пароль
+
+MAIL_USERNAME=your@gmail.com
+MAIL_PASSWORD=пароль_приложения_gmail
+MAIL_FROM=your@gmail.com

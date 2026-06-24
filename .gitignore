@@ -32,6 +32,15 @@ build/
 ### VS Code ###
 .vscode/
 
-### Env / secrets ###
+### Secrets / local only ###
 .env
-.env.local
+.env.*
+!/.env.example
+application-local.properties
+src/main/resources/application-local.properties
+
+### Local dev scripts (not needed on Railway) ###
+scripts/
+start.bat
+queryex
+qc

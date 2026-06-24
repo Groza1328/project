@@ -36,11 +36,12 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/forgot-password", "/reset-password", "/verify", "/register").permitAll()
+                .requestMatchers(HttpMethod.GET, "/forgot-password", "/reset-password", "/verify", "/register", "/privacy").permitAll()
                 .requestMatchers(HttpMethod.POST, "/forgot-password", "/reset-password", "/reset-password/**", "/verify", "/verify/**", "/register").permitAll()
                 .requestMatchers(
                         "/",
                         "/login",
+                        "/privacy",
                         "/verify/**",
                         "/css/**",
                         "/js/**",
@@ -59,7 +60,15 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/login")
                 .defaultSuccessUrl("/home", true)
+                .failureHandler((request, response, exception) -> {
+                    String username = request.getParameter("username");
+                    if (username != null && !username.isBlank()) {
+                        request.getSession().setAttribute("loginUsername", username.trim());
+                    }
+                    response.sendRedirect(request.getContextPath() + "/login?error");
+                })
                 .successHandler((request, response, authentication) -> {
+                    request.getSession().removeAttribute("loginUsername");
                     String username = authentication.getName();
                     LocalDateTime now = LocalDateTime.now();
                     // Обновляем последний вход пользователя

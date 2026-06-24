@@ -23,24 +23,24 @@
                        style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
                 <div class="form-group">
                     <label for="username">Логин</label>
-                    <input type="text" id="username" name="username" required autocomplete="off">
+                    <input type="text" id="username" th:field="*{username}" required autocomplete="off">
                     <span class="username-status"></span>
                     <div th:if="${#fields.hasErrors('username')}" class="field-error" th:errors="*{username}"></div>
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required autocomplete="off">
+                    <input type="email" id="email" th:field="*{email}" required autocomplete="off">
                     <div th:if="${#fields.hasErrors('email')}" class="field-error" th:errors="*{email}"></div>
                 </div>
                 <div class="form-group">
                     <label for="password">Пароль</label>
-                    <input type="password" id="password" name="password" required autocomplete="new-password">
+                    <input type="password" id="password" th:field="*{password}" required autocomplete="new-password">
                     <div th:if="${#fields.hasErrors('password')}" class="field-error" th:errors="*{password}"></div>
                 </div>
                 <div class="form-group checkbox-group">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="agreement" name="agreement" value="true" autocomplete="off">
-                        <span>Я согласен на <a href="/privacy" target="_blank">обработку персональных данных</a></span>
+                        <input type="checkbox" id="agreement" th:field="*{agreement}" autocomplete="off">
+                        <span>Я согласен на <a href="#" class="privacy-open-link" id="privacyOpenLink">обработку персональных данных</a></span>
                     </label>
                     <div th:if="${#fields.hasErrors('agreement')}" class="field-error" th:errors="*{agreement}"></div>
                 </div>
@@ -49,6 +49,19 @@
             
             <div class="auth-footer">
                 <p>Уже есть аккаунт? <a th:href="@{/login}">Войти</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="privacy-modal" id="privacyModal" aria-hidden="true" role="dialog" aria-labelledby="privacyModalTitle">
+        <div class="privacy-modal-backdrop" id="privacyModalBackdrop"></div>
+        <div class="privacy-modal-dialog">
+            <div class="privacy-modal-toolbar">
+                <h2 class="privacy-modal-title" id="privacyModalTitle">Обработка персональных данных</h2>
+                <button type="button" class="privacy-modal-close" id="privacyModalClose" aria-label="Закрыть">&times;</button>
+            </div>
+            <div class="privacy-modal-body">
+                <div th:replace="~{fragments/privacy-content :: content}"></div>
             </div>
         </div>
     </div>
@@ -80,6 +93,37 @@
                         }
                     });
             }, 500);
+        });
+
+        const privacyModal = document.getElementById('privacyModal');
+        const privacyOpenLink = document.getElementById('privacyOpenLink');
+        const privacyModalClose = document.getElementById('privacyModalClose');
+        const privacyModalBackdrop = document.getElementById('privacyModalBackdrop');
+
+        function openPrivacyModal(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            privacyModal.classList.add('is-open');
+            privacyModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        }
+
+        function closePrivacyModal() {
+            privacyModal.classList.remove('is-open');
+            privacyModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        }
+
+        privacyOpenLink.addEventListener('click', openPrivacyModal);
+        privacyModalClose.addEventListener('click', closePrivacyModal);
+        privacyModalBackdrop.addEventListener('click', closePrivacyModal);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && privacyModal.classList.contains('is-open')) {
+                closePrivacyModal();
+            }
         });
     </script>
 </body>

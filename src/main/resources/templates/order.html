@@ -54,6 +54,10 @@
             <form th:action="@{/order}" th:object="${orderForm}" method="post" class="order-form">
                 <input type="hidden" th:field="*{carType}">
 
+                <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error order-global-error">
+                    <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="firstName">Имя</label>
@@ -84,7 +88,7 @@
                     </div>
                     <div class="form-group">
                         <label for="address">Адрес выдачи</label>
-                        <select id="address" th:field="*{address}" required>
+                        <select id="address" th:field="*{address}" th:attr="data-initial-address=*{address}" required>
                             <!-- варианты задаём через JS -->
                         </select>
                         <div th:if="${#fields.hasErrors('address')}" class="field-error" th:errors="*{address}"></div>
@@ -111,11 +115,14 @@
                     </label>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Оформить заказ</button>
+                <button type="button" class="btn btn-primary" id="orderSubmitBtn">Оформить заказ</button>
             </form>
         </div>
     </section>
 </main>
+
+<div th:replace="~{fragments/payment-modal :: payment-modal}"></div>
+<script th:src="@{/js/payment-modal.js}"></script>
 
 <script>
     const citySelect = document.getElementById('city');
@@ -137,19 +144,33 @@
     function fillAddresses() {
         const city = citySelect.value || "Омск";
         const list = addressMap[city] || [];
+        const selectedAddress = addressSelect.dataset.initialAddress || addressSelect.value;
         addressSelect.innerHTML = "";
         list.forEach(addr => {
             const opt = document.createElement("option");
             opt.value = addr;
             opt.textContent = addr;
+            if (addr === selectedAddress) {
+                opt.selected = true;
+            }
             addressSelect.appendChild(opt);
         });
+        if (selectedAddress && !list.includes(selectedAddress)) {
+            const opt = document.createElement("option");
+            opt.value = selectedAddress;
+            opt.textContent = selectedAddress;
+            opt.selected = true;
+            addressSelect.appendChild(opt);
+        }
     }
 
     citySelect.addEventListener("change", fillAddresses);
     fillAddresses();
 
-    if (navigator.geolocation) {
+    const formHasData = document.getElementById('firstName').value.trim() !== ''
+        || document.getElementById('phone').value.trim() !== '';
+
+    if (!formHasData && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
             const lon = pos.coords.longitude;
             let city = "Омск";
@@ -158,6 +179,19 @@
             }
             citySelect.value = city;
             fillAddresses();
+        });
+    }
+
+    const orderForm = document.querySelector('.order-form');
+    const orderSubmitBtn = document.getElementById('orderSubmitBtn');
+    if (orderForm && orderSubmitBtn) {
+        orderSubmitBtn.addEventListener('click', function () {
+            if (!orderForm.reportValidity()) {
+                return;
+            }
+            openPaymentModal(function () {
+                orderForm.submit();
+            });
         });
     }
 </script>

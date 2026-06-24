@@ -15,8 +15,10 @@
             <h2>Подтверждение email</h2>
             
             <p class="verify-info">На почту <strong th:text="${email}"></strong> отправлен 6-значный код. Введите его ниже.</p>
+            <p class="verify-hint">Если письма нет 2–3 минуты, проверьте «Спам» или нажмите «Отправить код повторно».</p>
             
             <div th:if="${justRegistered}" class="alert alert-success">Регистрация принята. Введите код из письма ниже.</div>
+            <div th:if="${emailInfo}" class="alert alert-success" th:text="${emailInfo}"></div>
             <div th:if="${resendSuccess}" class="alert alert-success" th:text="${resendSuccess}"></div>
             <div th:if="${emailWarning}" class="alert alert-error" th:text="${emailWarning}"></div>
             <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
@@ -25,7 +27,8 @@
                 <div class="form-group">
                     <label for="code">Код из письма</label>
                     <input type="text" id="code" name="code" maxlength="6" pattern="[0-9]{6}" 
-                           placeholder="000000" required autofocus class="code-input" inputmode="numeric" autocomplete="one-time-code">
+                           placeholder="000000" required autofocus class="code-input" inputmode="numeric" autocomplete="one-time-code"
+                           th:value="${submittedCode}">
                 </div>
                 <button type="submit" class="btn btn-primary">Подтвердить</button>
             </form>

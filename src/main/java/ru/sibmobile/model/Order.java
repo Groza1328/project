@@ -19,6 +19,10 @@ public class Order {
     @Column(nullable = false)
     private CarType carType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "car_id")
+    private Car car;
+
     @Column(nullable = false)
     private LocalDateTime startDateTime;
 
@@ -35,6 +39,9 @@ public class Order {
 
     public CarType getCarType() { return carType; }
     public void setCarType(CarType carType) { this.carType = carType; }
+
+    public Car getCar() { return car; }
+    public void setCar(Car car) { this.car = car; }
 
     public LocalDateTime getStartDateTime() { return startDateTime; }
     public void setStartDateTime(LocalDateTime startDateTime) { this.startDateTime = startDateTime; }

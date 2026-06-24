@@ -81,6 +81,7 @@ public class AdminController {
     public String createCar(@RequestParam String name,
                             @RequestParam String bodyType,
                             @RequestParam String plateNumber,
+                            @RequestParam(defaultValue = "Омск") String city,
                             @RequestParam(required = false) MultipartFile imageFile,
                             @RequestParam(required = false) String description,
                             @RequestParam(defaultValue = "true") boolean active) {
@@ -96,6 +97,7 @@ public class AdminController {
         car.setType(mapBodyTypeToCarType(bodyType));
         car.setBodyType(bodyType.trim());
         car.setPlateNumber(plate);
+        car.setCity(city == null || city.isBlank() ? "Омск" : city.trim());
         String savedImage = saveCarImage(imageFile);
         car.setImagePath(savedImage != null ? savedImage : "/images/Auto1.jpg");
         car.setDescription(description == null ? null : description.trim());
@@ -109,6 +111,7 @@ public class AdminController {
                             @RequestParam String name,
                             @RequestParam String bodyType,
                             @RequestParam String plateNumber,
+                            @RequestParam(defaultValue = "Омск") String city,
                             @RequestParam(required = false) MultipartFile imageFile,
                             @RequestParam(required = false) String description,
                             @RequestParam(defaultValue = "false") boolean active) {
@@ -130,6 +133,7 @@ public class AdminController {
         car.setType(mapBodyTypeToCarType(bodyType));
         car.setBodyType(bodyType.trim());
         car.setPlateNumber(plate);
+        car.setCity(city == null || city.isBlank() ? "Омск" : city.trim());
         String savedImage = saveCarImage(imageFile);
         if (savedImage != null) {
             car.setImagePath(savedImage);

@@ -101,50 +101,8 @@ public class DataLoader {
                     "Сотрудник", LocalDateTime.now().minusMonths(2));
             }
 
-            // Добавляем базовый автопарк (если таблица пуста)
-            if (carRepository.count() == 0) {
-                Car solaris = new Car();
-                solaris.setName("Hyundai Solaris (2020–2023)");
-                solaris.setType(CarType.SOLARIS);
-                solaris.setBodyType("Седан");
-                solaris.setPlateNumber("А000АА154");
-                solaris.setImagePath("/images/Auto1.jpg");
-                solaris.setDescription("Надёжный городской седан с экономичным расходом топлива.");
-                solaris.setActive(true);
-                carRepository.save(solaris);
-
-                Car geely = new Car();
-                geely.setName("Geely Xingyue S (Xingyue L)");
-                geely.setType(CarType.GEELY_XINGYUE);
-                geely.setBodyType("Кроссовер");
-                geely.setPlateNumber("В111ВВ154");
-                geely.setImagePath("/images/Auto2.jpg");
-                geely.setDescription("Мощный кроссовер с продвинутыми ассистентами и полным приводом.");
-                geely.setActive(true);
-                carRepository.save(geely);
-
-                Car qashqai = new Car();
-                qashqai.setName("Nissan Qashqai II (J11)");
-                qashqai.setType(CarType.NISSAN_QASHQAI);
-                qashqai.setBodyType("Кроссовер");
-                qashqai.setPlateNumber("С222СС154");
-                qashqai.setImagePath("/images/Auto3.jpg");
-                qashqai.setDescription("Популярный городской кроссовер, комфортный и практичный.");
-                qashqai.setActive(true);
-                carRepository.save(qashqai);
-            }
-
-            // Для существующих авто проставляем кузов, если поле пустое
-            carRepository.findAll().forEach(car -> {
-                if (car.getBodyType() == null || car.getBodyType().isBlank()) {
-                    String bodyType = switch (car.getType()) {
-                        case SOLARIS -> "Седан";
-                        case GEELY_XINGYUE, NISSAN_QASHQAI -> "Кроссовер";
-                    };
-                    car.setBodyType(bodyType);
-                    carRepository.save(car);
-                }
-            });
+            // Автопарк: по 2 одинаковых авто в каждом городе (регионы 55/155 — Омск, 54/154 — Новосибирск)
+            ensureFleet(carRepository);
         };
     }
 
@@ -184,5 +142,105 @@ public class DataLoader {
         employee.setActive(true);
         employee.setHiredAt(hiredAt);
         repo.save(employee);
+    }
+
+    private void ensureFleet(CarRepository carRepository) {
+        seedCarIfMissing(carRepository, CarType.SOLARIS, "Омск", "А000АА55",
+                "Hyundai Solaris (2020–2023)", "Седан", "/images/Auto1.jpg",
+                "Надёжный городской седан с экономичным расходом топлива.");
+        seedCarIfMissing(carRepository, CarType.SOLARIS, "Омск", "К101КК155",
+                "Hyundai Solaris (2020–2023)", "Седан", "/images/Auto1.jpg",
+                "Надёжный городской седан с экономичным расходом топлива.");
+        seedCarIfMissing(carRepository, CarType.SOLARIS, "Новосибирск", "А000АА154",
+                "Hyundai Solaris (2020–2023)", "Седан", "/images/Auto1.jpg",
+                "Надёжный городской седан с экономичным расходом топлива.");
+        seedCarIfMissing(carRepository, CarType.SOLARIS, "Новосибирск", "К101КК54",
+                "Hyundai Solaris (2020–2023)", "Седан", "/images/Auto1.jpg",
+                "Надёжный городской седан с экономичным расходом топлива.");
+
+        seedCarIfMissing(carRepository, CarType.GEELY_XINGYUE, "Омск", "А456ВЕ55",
+                "Geely Xingyue S (Xingyue L)", "Кроссовер", "/images/Auto2.jpg",
+                "Мощный кроссовер с продвинутыми ассистентами и полным приводом.");
+        seedCarIfMissing(carRepository, CarType.GEELY_XINGYUE, "Омск", "М378РО155",
+                "Geely Xingyue S (Xingyue L)", "Кроссовер", "/images/Auto2.jpg",
+                "Мощный кроссовер с продвинутыми ассистентами и полным приводом.");
+        seedCarIfMissing(carRepository, CarType.GEELY_XINGYUE, "Новосибирск", "В111ВВ154",
+                "Geely Xingyue S (Xingyue L)", "Кроссовер", "/images/Auto2.jpg",
+                "Мощный кроссовер с продвинутыми ассистентами и полным приводом.");
+        seedCarIfMissing(carRepository, CarType.GEELY_XINGYUE, "Новосибирск", "А456ВЕ154",
+                "Geely Xingyue S (Xingyue L)", "Кроссовер", "/images/Auto2.jpg",
+                "Мощный кроссовер с продвинутыми ассистентами и полным приводом.");
+
+        seedCarIfMissing(carRepository, CarType.NISSAN_QASHQAI, "Омск", "С222СС55",
+                "Nissan Qashqai II (J11)", "Кроссовер", "/images/Auto3.jpg",
+                "Популярный городской кроссовер, комфортный и практичный.");
+        seedCarIfMissing(carRepository, CarType.NISSAN_QASHQAI, "Омск", "Н333НН155",
+                "Nissan Qashqai II (J11)", "Кроссовер", "/images/Auto3.jpg",
+                "Популярный городской кроссовер, комфортный и практичный.");
+        seedCarIfMissing(carRepository, CarType.NISSAN_QASHQAI, "Новосибирск", "С222СС154",
+                "Nissan Qashqai II (J11)", "Кроссовер", "/images/Auto3.jpg",
+                "Популярный городской кроссовер, комфортный и практичный.");
+        seedCarIfMissing(carRepository, CarType.NISSAN_QASHQAI, "Новосибирск", "Н333НН54",
+                "Nissan Qashqai II (J11)", "Кроссовер", "/images/Auto3.jpg",
+                "Популярный городской кроссовер, комфортный и практичный.");
+
+        carRepository.findAll().forEach(car -> {
+            boolean changed = false;
+            if (car.getBodyType() == null || car.getBodyType().isBlank()) {
+                car.setBodyType(switch (car.getType()) {
+                    case SOLARIS -> "Седан";
+                    case GEELY_XINGYUE, NISSAN_QASHQAI -> "Кроссовер";
+                });
+                changed = true;
+            }
+            if (car.getCity() == null || car.getCity().isBlank()) {
+                car.setCity(inferCityByPlate(car.getPlateNumber()));
+                changed = true;
+            }
+            if (changed) {
+                carRepository.save(car);
+            }
+        });
+    }
+
+    private void seedCarIfMissing(CarRepository carRepository,
+                                  CarType type,
+                                  String city,
+                                  String plateNumber,
+                                  String name,
+                                  String bodyType,
+                                  String imagePath,
+                                  String description) {
+        carRepository.findByPlateNumber(plateNumber).ifPresentOrElse(car -> {
+            if (car.getCity() == null || car.getCity().isBlank()) {
+                car.setCity(city);
+                carRepository.save(car);
+            }
+        }, () -> {
+            Car car = new Car();
+            car.setName(name);
+            car.setType(type);
+            car.setCity(city);
+            car.setBodyType(bodyType);
+            car.setPlateNumber(plateNumber);
+            car.setImagePath(imagePath);
+            car.setDescription(description);
+            car.setActive(true);
+            carRepository.save(car);
+        });
+    }
+
+    private String inferCityByPlate(String plateNumber) {
+        if (plateNumber == null) {
+            return "Омск";
+        }
+        String digits = plateNumber.replaceAll("\\D", "");
+        if (digits.endsWith("55") || digits.endsWith("155")) {
+            return "Омск";
+        }
+        if (digits.endsWith("54") || digits.endsWith("154")) {
+            return "Новосибирск";
+        }
+        return "Омск";
     }
 }

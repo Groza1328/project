@@ -57,7 +57,7 @@
                 <li>Парковка только на парковках компании</li>
             </ul>
             <div class="tariff-footer">
-                <form th:if="${tariff.name() != 'ECONOMY'}" th:action="@{/tariffs/select}" method="post">
+                <form th:if="${tariff.name() != 'ECONOMY'}" th:action="@{/tariffs/select}" method="post" class="tariff-pay-form">
                     <input type="hidden" name="type" value="ECONOMY">
                     <button type="submit" class="btn btn-primary">Подключить</button>
                 </form>
@@ -78,7 +78,7 @@
                 <li>Парковка только на парковках компании</li>
             </ul>
             <div class="tariff-footer">
-                <form th:if="${tariff.name() != 'PREMIUM'}" th:action="@{/tariffs/select}" method="post">
+                <form th:if="${tariff.name() != 'PREMIUM'}" th:action="@{/tariffs/select}" method="post" class="tariff-pay-form">
                     <input type="hidden" name="type" value="PREMIUM">
                     <button type="submit" class="btn btn-primary">Подключить</button>
                 </form>
@@ -99,7 +99,7 @@
                 <li>Можно оставлять авто в любом месте в пределах зоны</li>
             </ul>
             <div class="tariff-footer">
-                <form th:if="${tariff.name() != 'LUX'}" th:action="@{/tariffs/select}" method="post">
+                <form th:if="${tariff.name() != 'LUX'}" th:action="@{/tariffs/select}" method="post" class="tariff-pay-form">
                     <input type="hidden" name="type" value="LUX">
                     <button type="submit" class="btn btn-primary">Подключить</button>
                 </form>
@@ -108,6 +108,19 @@
         </section>
     </div>
 </main>
+
+<div th:replace="~{fragments/payment-modal :: payment-modal}"></div>
+<script th:src="@{/js/payment-modal.js}"></script>
+<script>
+    document.querySelectorAll('.tariff-pay-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            openPaymentModal(function () {
+                form.submit();
+            });
+        });
+    });
+</script>
 
 </body>
 </html>

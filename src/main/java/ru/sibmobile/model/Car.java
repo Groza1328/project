@@ -21,6 +21,10 @@ public class Car {
     @Column(nullable = false, unique = true)
     private String plateNumber;
 
+    /** Город, где находится автомобиль */
+    @Column(nullable = false)
+    private String city = "Омск";
+
     /** Тип кузова (седан, кроссовер, хэтчбек и т.п.) */
     private String bodyType;
 
@@ -64,6 +68,14 @@ public class Car {
 
     public void setPlateNumber(String plateNumber) {
         this.plateNumber = plateNumber;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 
     public String getBodyType() {

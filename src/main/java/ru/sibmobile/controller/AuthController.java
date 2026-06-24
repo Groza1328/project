@@ -3,6 +3,7 @@ package ru.sibmobile.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -10,11 +11,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.sibmobile.dto.RegisterForm;
 import ru.sibmobile.model.Car;
+import ru.sibmobile.model.CarType;
 import ru.sibmobile.model.TariffType;
 import ru.sibmobile.service.TariffService;
 import ru.sibmobile.service.TariffService.CarPrice;
 import ru.sibmobile.repository.CarRepository;
+import ru.sibmobile.repository.OrderRepository;
+import ru.sibmobile.repository.UserRepository;
+import ru.sibmobile.service.UserDashboardService;
 import ru.sibmobile.service.UserService;
+import ru.sibmobile.model.User;
 
 @Controller
 public class AuthController {
@@ -22,11 +28,19 @@ public class AuthController {
     private final UserService userService;
     private final TariffService tariffService;
     private final CarRepository carRepository;
+    private final UserRepository userRepository;
+    private final UserDashboardService userDashboardService;
 
-    public AuthController(UserService userService, TariffService tariffService, CarRepository carRepository) {
+    public AuthController(UserService userService,
+                          TariffService tariffService,
+                          CarRepository carRepository,
+                          UserRepository userRepository,
+                          UserDashboardService userDashboardService) {
         this.userService = userService;
         this.tariffService = tariffService;
         this.carRepository = carRepository;
+        this.userRepository = userRepository;
+        this.userDashboardService = userDashboardService;
     }
 
     @GetMapping("/")
@@ -43,6 +57,14 @@ public class AuthController {
     public String registerForm(Model model) {
         model.addAttribute("registerForm", new RegisterForm());
         return "register";
+    }
+
+    @GetMapping("/privacy")
+    public String privacy(Authentication auth, Model model) {
+        boolean loggedIn = auth != null && auth.isAuthenticated()
+                && !"anonymousUser".equals(auth.getPrincipal());
+        model.addAttribute("loggedIn", loggedIn);
+        return "privacy";
     }
 
     @PostMapping("/register")
@@ -74,15 +96,17 @@ public class AuthController {
                 form.getUsername(), form.getEmail(), form.getPassword());
         }
 
+        if (!emailSent) {
+            model.addAttribute("registerError", "Не удалось создать учётную запись. Попробуйте позже.");
+            return "register";
+        }
+
         String mail = form.getEmail().trim().toLowerCase();
         session.setAttribute("verifyEmail", mail);
         session.setAttribute("verifyPassword", form.getPassword());
         model.addAttribute("email", mail);
         model.addAttribute("justRegistered", true);
-        if (!emailSent) {
-            model.addAttribute("emailWarning",
-                "Не удалось отправить письмо. Проверьте адрес или нажмите «Отправить код повторно».");
-        }
+        model.addAttribute("emailInfo", "Код отправляется на почту. Обычно письмо приходит за 1–2 минуты. Проверьте папку «Спам».");
         return "verify";
     }
 
@@ -129,6 +153,7 @@ public class AuthController {
 
         model.addAttribute("email", email);
         model.addAttribute("error", "Неверный код подтверждения");
+        model.addAttribute("submittedCode", code);
         return "verify";
     }
 
@@ -139,10 +164,10 @@ public class AuthController {
             return "redirect:/register";
         }
         if (userService.resendVerificationCode(email)) {
-            redirectAttributes.addFlashAttribute("resendSuccess", "Код отправлен повторно на вашу почту.");
+            redirectAttributes.addFlashAttribute("resendSuccess", "Код отправляется повторно. Обычно письмо приходит за 1–2 минуты.");
         } else {
             redirectAttributes.addFlashAttribute("emailWarning",
-                "Не удалось отправить письмо. Проверьте настройки SMTP или попробуйте позже.");
+                "Не удалось отправить код. Проверьте email или попробуйте позже.");
         }
         return "redirect:/verify";
     }
@@ -162,7 +187,13 @@ public class AuthController {
     }
 
     @GetMapping("/home")
-    public String home() {
+    public String home(Authentication auth, Model model) {
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            String login = auth.getName();
+            userRepository.findByUsername(login)
+                    .or(() -> userRepository.findByEmail(login))
+                    .ifPresent(user -> model.addAttribute("dashboard", userDashboardService.buildDashboard(user)));
+        }
         return "home";
     }
 
@@ -173,9 +204,14 @@ public class AuthController {
         model.addAttribute("canFreeParking", tariffService.canFreeParkingAnywhere(tariff));
 
         java.util.List<Car> cars = carRepository.findByActiveTrueOrderByNameAsc();
+        java.util.LinkedHashMap<CarType, Car> uniqueByType = new java.util.LinkedHashMap<>();
+        for (Car car : cars) {
+            uniqueByType.putIfAbsent(car.getType(), car);
+        }
+
         java.util.List<java.util.Map<String, Object>> carViews = new java.util.ArrayList<>();
 
-        for (Car car : cars) {
+        for (Car car : uniqueByType.values()) {
             CarPrice price = tariffService.calculatePrice(tariff, car.getType());
             java.util.Map<String, Object> view = new java.util.HashMap<>();
             view.put("id", car.getId());
@@ -219,6 +255,7 @@ public class AuthController {
                                 Model model) {
         if (email == null || email.isBlank()) {
             model.addAttribute("error", "Введите email");
+            model.addAttribute("submittedEmail", email == null ? "" : email.trim());
             return "forgot-password";
         }
 
@@ -230,14 +267,11 @@ public class AuthController {
             return "forgot-password";
         }
 
-        boolean sent = userService.startPasswordReset(mail);
+        userService.startPasswordReset(mail);
         session.setAttribute("resetEmail", mail);
         model.addAttribute("email", mail);
         model.addAttribute("codeSent", true);
-        if (!sent) {
-            model.addAttribute("emailWarning",
-                "Код создан, но письмо не отправилось. Нажмите «Отправить код повторно» или проверьте SMTP.");
-        }
+        model.addAttribute("emailInfo", "Код отправляется на почту. Обычно письмо приходит за 1–2 минуты. Проверьте папку «Спам».");
         return "reset-password";
     }
 
@@ -272,12 +306,14 @@ public class AuthController {
         if (newPassword == null || newPassword.length() < 6) {
             model.addAttribute("email", email);
             model.addAttribute("error", "Пароль должен быть минимум 6 символов");
+            model.addAttribute("submittedCode", code);
             return "reset-password";
         }
 
         if (!newPassword.equals(passwordConfirm)) {
             model.addAttribute("email", email);
             model.addAttribute("error", "Пароли не совпадают");
+            model.addAttribute("submittedCode", code);
             return "reset-password";
         }
 
@@ -288,6 +324,7 @@ public class AuthController {
 
         model.addAttribute("email", email);
         model.addAttribute("error", "Неверный код. Проверьте письмо или запросите код повторно.");
+        model.addAttribute("submittedCode", code);
         return "reset-password";
     }
 
@@ -298,7 +335,7 @@ public class AuthController {
             return "redirect:/forgot-password";
         }
         if (userService.resendPasswordResetCode(email)) {
-            redirectAttributes.addFlashAttribute("resendSuccess", "Новый код отправлен на вашу почту.");
+            redirectAttributes.addFlashAttribute("resendSuccess", "Код отправляется повторно. Обычно письмо приходит за 1–2 минуты.");
         } else {
             redirectAttributes.addFlashAttribute("emailWarning",
                 "Не удалось отправить письмо. Проверьте email или настройки почтового сервера.");

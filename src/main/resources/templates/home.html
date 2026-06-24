@@ -18,14 +18,91 @@
                 <span class="sun-icon">☀️</span>
                 <span class="moon-icon">🌙</span>
             </button>
-            <nav class="nav-menu">
-                <a th:href="@{/fleet}" class="nav-btn">Заказать</a>
-                <a th:href="@{/tariffs}" class="nav-btn">О тарифах</a>
-                <a href="#help" class="nav-btn">Помощь</a>
-                <form th:action="@{/logout}" method="post" style="display:inline;margin-left:16px;">
-                    <button type="submit" class="nav-btn">Выход</button>
-                </form>
-            </nav>
+            <div class="main-header-actions">
+                <nav class="nav-menu">
+                    <a th:href="@{/fleet}" class="nav-btn">Заказать</a>
+                    <a th:href="@{/tariffs}" class="nav-btn">О тарифах</a>
+                    <a href="#help" class="nav-btn">Помощь</a>
+                    <form th:action="@{/logout}" method="post" style="display:inline;">
+                        <button type="submit" class="nav-btn">Выход</button>
+                    </form>
+                </nav>
+                <div class="notifications-wrap" th:if="${dashboard != null}">
+                    <button type="button" class="notifications-bell" id="notificationsBell" aria-label="Уведомления" aria-expanded="false">
+                        <svg class="bell-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 2a5 5 0 0 0-5 5v2.1c0 .7-.2 1.4-.6 2L5 13.5V14h14v-.5l-1.4-2.4c-.4-.6-.6-1.3-.6-2V7a5 5 0 0 0-5-5zm0 20a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22z"/>
+                        </svg>
+                        <span class="notifications-badge" th:if="${dashboard.notificationCount > 0}" th:text="${dashboard.notificationCount}">0</span>
+                    </button>
+                    <div class="notifications-panel" id="notificationsPanel" aria-hidden="true">
+                        <div class="notifications-panel-header">
+                            <h2>Уведомления</h2>
+                            <button type="button" class="notifications-close" id="notificationsClose" aria-label="Закрыть">&times;</button>
+                        </div>
+                        <div class="notifications-panel-body">
+                            <section class="notifications-section">
+                                <h3>Мой профиль</h3>
+                                <div class="profile-card">
+                                    <p><span>Логин:</span> <strong th:text="${dashboard.username}">user</strong></p>
+                                    <p><span>Email:</span> <strong th:text="${dashboard.email}">mail</strong></p>
+                                    <p><span>Тариф:</span> <strong th:text="${dashboard.tariff}">Стандарт</strong></p>
+                                    <p th:if="${dashboard.registeredAt != null}">
+                                        <span>Регистрация:</span>
+                                        <strong th:text="${#temporals.format(dashboard.registeredAt, 'dd.MM.yyyy')}">—</strong>
+                                    </p>
+                                    <p th:if="${dashboard.lastLoginAt != null}">
+                                        <span>Последний вход:</span>
+                                        <strong th:text="${#temporals.format(dashboard.lastLoginAt, 'dd.MM.yyyy HH:mm')}">—</strong>
+                                    </p>
+                                    <p th:if="${dashboard.complaintsCount > 0}">
+                                        <span>Штрафы:</span> <strong th:text="${dashboard.complaintsCount}">0</strong>
+                                    </p>
+                                </div>
+                            </section>
+
+                            <section class="notifications-section">
+                                <h3>Уведомления</h3>
+                                <div class="notifications-list">
+                                    <article th:each="n : ${dashboard.notifications}"
+                                             class="notification-item"
+                                             th:classappend="' notification-' + ${n.type}">
+                                        <p class="notification-title" th:text="${n.title}">Заголовок</p>
+                                        <p class="notification-message" th:text="${n.message}">Текст</p>
+                                        <p class="notification-time"
+                                           th:if="${n.time != null}"
+                                           th:text="${#temporals.format(n.time, 'dd.MM.yyyy HH:mm')}">—</p>
+                                    </article>
+                                </div>
+                            </section>
+
+                            <section class="notifications-section">
+                                <h3>Мои заказы</h3>
+                                <div class="orders-list" th:if="${#lists.isEmpty(dashboard.orders) == false}">
+                                    <article th:each="o : ${dashboard.orders}" class="order-item"
+                                             th:classappend="' order-' + ${#strings.toLowerCase(o.status)}">
+                                        <div class="order-item-head">
+                                            <strong th:text="${o.carName}">Авто</strong>
+                                            <span class="order-status" th:text="${o.statusLabel}">Статус</span>
+                                        </div>
+                                        <p th:if="${o.plateNumber != null and o.plateNumber != '—'}">
+                                            Госномер: <strong th:text="${o.plateNumber}">А000АА55</strong>
+                                            <span th:if="${o.city != null and o.city != '—'}"> · <span th:text="${o.city}">Омск</span></span>
+                                        </p>
+                                        <p>
+                                            <span th:text="${#temporals.format(o.startDateTime, 'dd.MM.yyyy HH:mm')}">—</span>
+                                            —
+                                            <span th:text="${#temporals.format(o.endDateTime, 'dd.MM.yyyy HH:mm')}">—</span>
+                                        </p>
+                                    </article>
+                                </div>
+                                <p class="notifications-empty" th:if="${#lists.isEmpty(dashboard.orders)}">
+                                    Заказов пока нет. <a th:href="@{/fleet}">Оформить прокат</a>
+                                </p>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </header>
         
         <!-- Hero Content -->
@@ -44,9 +121,9 @@
             <a href="mailto:karshering@gmail.com" class="footer-email">karshering@gmail.com</a>
         </div>
         <div class="footer-right">
-            <a href="/privacy">Пользовательское соглашение</a>
+            <a th:href="@{/privacy}">Пользовательское соглашение</a>
             <a href="#promotions">Акции</a>
-            <a href="https://t.me/+hfgHO8ic8YM0OTA6" target="_blank" rel="noopener noreferrer">Наш Telegram</a>
+            <a href="https://vk.com/sibmobill" target="_blank" rel="noopener noreferrer">Наш VK</a>
         </div>
     </footer>
     
@@ -86,6 +163,51 @@
             isDark = !isDark;
             updateTheme();
         });
+
+        const notificationsBell = document.getElementById('notificationsBell');
+        const notificationsPanel = document.getElementById('notificationsPanel');
+        const notificationsClose = document.getElementById('notificationsClose');
+
+        function openNotifications() {
+            if (!notificationsPanel || !notificationsBell) return;
+            notificationsPanel.classList.add('is-open');
+            notificationsPanel.setAttribute('aria-hidden', 'false');
+            notificationsBell.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeNotifications() {
+            if (!notificationsPanel || !notificationsBell) return;
+            notificationsPanel.classList.remove('is-open');
+            notificationsPanel.setAttribute('aria-hidden', 'true');
+            notificationsBell.setAttribute('aria-expanded', 'false');
+        }
+
+        if (notificationsBell && notificationsPanel) {
+            notificationsBell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (notificationsPanel.classList.contains('is-open')) {
+                    closeNotifications();
+                } else {
+                    openNotifications();
+                }
+            });
+
+            if (notificationsClose) {
+                notificationsClose.addEventListener('click', closeNotifications);
+            }
+
+            document.addEventListener('click', (e) => {
+                if (!notificationsPanel.contains(e.target) && !notificationsBell.contains(e.target)) {
+                    closeNotifications();
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeNotifications();
+                }
+            });
+        }
     </script>
 </body>
 </html>

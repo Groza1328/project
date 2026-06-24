@@ -1,24 +1,26 @@
-FROM maven:3.9-eclipse-temurin-17-alpine AS build
+# Сборка и запуск СибМобиль для Railway.app
+FROM eclipse-temurin:17-jdk-jammy AS build
+
 WORKDIR /app
 
-COPY pom.xml .
-COPY .mvn .mvn
-COPY mvnw .
-COPY src src
+COPY .mvn/ .mvn/
+COPY mvnw pom.xml ./
+RUN chmod +x mvnw
 
-RUN chmod +x mvnw && ./mvnw -q -DskipTests package
+COPY src ./src
+RUN ./mvnw -q -DskipTests package
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
+
 WORKDIR /app
 
-RUN addgroup -S app && adduser -S app -G app
-USER app
+RUN useradd -ms /bin/bash spring
+USER spring
 
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/sibmobile-*.jar app.jar
 
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

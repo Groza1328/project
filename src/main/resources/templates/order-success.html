@@ -25,6 +25,10 @@
     <div class="auth-card" style="max-width: 520px; margin: 40px auto;">
         <h2 style="text-align:center; margin-bottom: 16px;">Заказ принят</h2>
         <p style="margin-bottom: 16px;" th:text="'Вы успешно забронировали автомобиль: ' + ${carName}"></p>
+        <p th:if="${assignedPlate != null}" style="margin-bottom: 8px;">
+            Вам выдан автомобиль с госномером: <strong th:text="${assignedPlate}">А000АА55</strong>
+            <span th:if="${assignedCity != null}"> (<span th:text="${assignedCity}">Омск</span>)</span>.
+        </p>
         <p style="margin-bottom: 8px;">
             Тариф: <strong th:text="${tariff}">TARIFF</strong>
         </p>
@@ -34,6 +38,9 @@
         </p>
         <p th:if="${email != null}" style="margin-bottom: 8px;">
             Подтверждение отправлено на вашу почту: <strong th:text="${email}">email@example.com</strong>.
+        </p>
+        <p th:if="${receiptSent}" style="margin-bottom: 8px;">
+            Чек отправлен на вашу почту: <strong th:text="${email}">email@example.com</strong>.
         </p>
         <p th:if="${email == null}" style="margin-bottom: 8px;">
             Подтверждение заказа не было отправлено на почту (email не найден).

@@ -1,103 +1,67 @@
 # Деплой СибМобиль на Railway.app
 
-Эта папка — **отдельная копия** приложения, подготовленная для хостинга.  
-База данных и веб-приложение работают как **два разных сервиса** на Railway и не конфликтуют с локальной PostgreSQL на вашем компьютере.
-
-## Архитектура на Railway
-
-```
-┌─────────────────────┐      переменные PGHOST, PGPORT…      ┌─────────────────────┐
-│  Web Service        │ ───────────────────────────────────► │  PostgreSQL         │
-│  (Spring Boot)      │                                      │  (отдельный сервис) │
-│  Dockerfile         │                                      │                     │
-└─────────────────────┘                                      └─────────────────────┘
-```
-
-Локально у вас может быть PostgreSQL на `localhost:5432`.  
-На Railway — **своя** база в облаке, приложение подключается только через переменные окружения.
+Папка **Хост** — готовая к публикации версия приложения.  
+PostgreSQL на Railway — **отдельный сервис**, не конфликтует с локальной БД.
 
 ## Быстрый старт
 
-### 1. Репозиторий
+### 1. GitHub
+Загрузите **содержимое папки `Хост`** как корень репозитория.
 
-Загрузите содержимое папки `Хост` в GitHub (только эту папку, как корень репозитория).
-
-### 2. Проект на Railway
-
-1. Зайдите на [railway.app](https://railway.app)
-2. **New Project** → **Deploy from GitHub repo**
-3. Выберите репозиторий
-
-### 3. PostgreSQL (отдельно от приложения)
-
-1. В проекте Railway: **+ New** → **Database** → **PostgreSQL**
-2. Откройте Web-сервис → **Variables** → **Add Reference**
-3. Подключите переменные из PostgreSQL: `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`
-
-### 4. Переменные Web-сервиса
+### 2. Railway
+1. [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub**
+2. **+ New** → **Database** → **PostgreSQL**
+3. В Web-сервисе: **Variables** → **Add Reference** → переменные `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`
+4. Добавьте переменные:
 
 | Переменная | Значение |
 |------------|----------|
 | `SPRING_PROFILES_ACTIVE` | `prod` |
-| `MAIL_USERNAME` | ваш Gmail |
-| `MAIL_PASSWORD` | пароль приложения Gmail |
+| `MAIL_USERNAME` | Gmail |
+| `MAIL_PASSWORD` | пароль приложения |
 | `MAIL_FROM` | тот же email |
 
-Переменные `PG*` Railway добавит сам при связке с PostgreSQL.
+5. **Settings** → **Networking** → **Generate Domain**
 
-### 5. Деплой
+### 3. Перезапуск
+После деплоя Hibernate обновит схему БД (`ddl-auto=update`) — появятся колонки `city`, `car_id` и др.
 
-Railway соберёт проект по `Dockerfile` и запустит JAR.  
-Проверка здоровья: `/actuator/health`
-
-Публичный URL: **Settings** → **Networking** → **Generate Domain**
-
-## Локальный запуск (из папки Хост)
-
-1. Скопируйте `application-local.properties.example` → `application-local.properties`
-2. Укажите пароль локальной БД и почты
-3. Запуск:
-
-```bash
-./mvnw spring-boot:run
-```
-
-Профиль `local` используется по умолчанию и **не трогает** Railway.
-
-## Файлы конфигурации
+## Файлы для хостинга
 
 | Файл | Назначение |
 |------|------------|
-| `application.properties` | Общие настройки, порт, почта через env |
-| `application-prod.properties` | Railway: БД через `PGHOST` и др. |
-| `application-local.properties` | Локальная БД (не коммитить!) |
-| `Dockerfile` | Сборка для Railway |
-| `railway.toml` | Healthcheck и политика перезапуска |
+| `Dockerfile` | Сборка JAR в контейнере |
+| `railway.toml` | Healthcheck `/actuator/health` |
+| `.dockerignore` | Исключения при сборке |
+| `application.properties` | Общие настройки, `ddl-auto=update` |
+| `application-prod.properties` | БД Railway через `PGHOST`… |
+| `RailwayDatabaseConfig.java` | Резерв через `DATABASE_URL` |
+| `.env.example` | Шаблон переменных |
+
+## Локальный запуск
+
+```powershell
+copy src\main\resources\application-local.properties.example src\main\resources\application-local.properties
+# укажите DB_PASSWORD и почту
+.\mvnw.cmd spring-boot:run
+```
 
 ## Админ по умолчанию
-
-После первого запуска создаётся:
-
 - Логин: `Admin777`
 - Пароль: `Admin123`
 
-**Смените пароль после деплоя в production.**
+## Изображения
+Добавьте в `src/main/resources/static/images/`:
+- `Auto1.jpg`, `Auto2.jpg`, `Auto3.jpg`
+- `lobbiD.jpg`, `lobbiN.jpg` (фон главной)
 
-## Изображения авто
+## Если БД не обновилась
 
-Положите файлы `Auto1.jpg`, `Auto2.jpg`, `Auto3.jpg` в:
+В PostgreSQL на Railway выполните:
 
+```sql
+ALTER TABLE cars ADD COLUMN IF NOT EXISTS city VARCHAR(255) NOT NULL DEFAULT 'Омск';
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS car_id BIGINT REFERENCES cars(id);
 ```
-src/main/resources/static/images/
-```
 
-## Частые проблемы
-
-**Приложение не стартует — ошибка БД**  
-Убедитесь, что PostgreSQL-сервис связан с Web-сервисом и переменные `PGHOST`, `PGUSER` видны в Variables.
-
-**Письма не отправляются**  
-Проверьте `MAIL_USERNAME` и `MAIL_PASSWORD` (пароль приложения Google, не обычный пароль).
-
-**502 / healthcheck failed**  
-Подождите 2–3 минуты после первого деплоя — Hibernate создаёт таблицы в новой БД.
+Затем перезапустите Web-сервис.

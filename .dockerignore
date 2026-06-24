@@ -8,6 +8,8 @@ target/
 .env.*
 !/.env.example
 application-local.properties
+src/main/resources/application-local.properties
+
 scripts/
 start.bat
 queryex

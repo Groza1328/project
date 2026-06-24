@@ -14,10 +14,6 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
-/**
- * Резервное подключение к PostgreSQL через DATABASE_URL (Railway),
- * если переменные PGHOST/PGPORT не заданы.
- */
 @Configuration
 @Profile("prod")
 @ConditionalOnProperty(name = "PGHOST", matchIfMissing = true)

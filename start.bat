@@ -71,6 +71,13 @@ if not errorlevel 1 (
     ) else (
         echo Database sibmobile exists.
     )
+    echo Updating schema...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPTS%\migrate-db.ps1" -PgPassword "%PGPASSWORD%"
+    if errorlevel 1 (
+        echo.
+        echo [ERROR] Database schema migration failed.
+        goto :end
+    )
 ) else (
     echo psql not found - skipping DB check.
 )
